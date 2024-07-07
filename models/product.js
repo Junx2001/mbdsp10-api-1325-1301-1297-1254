@@ -26,6 +26,14 @@ module.exports = (sequelize, DataTypes) => {
           key: 'id'
         }
       },
+      actual_owner_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'id'
+        }
+      },
     }, {
       paranoid: true // Enable soft delete
     });
