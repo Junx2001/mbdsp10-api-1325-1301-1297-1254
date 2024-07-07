@@ -70,6 +70,82 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+exports.updateProduct = async (req, res) => {
+  const schema = Joi.object({
+    product_name: Joi.string(),
+    description: Joi.string().allow(null, ''),
+    product_image: Joi.string().allow(null),
+    categories: Joi.array().items(Joi.number()), // Assuming category IDs
+  });
+  try {
+    const { error } = schema.validate(req.body);
+    if (error) return res.status(400).json({
+      code: 400, 
+      status: "fail",
+      message: error.details[0].message,
+      data: null
+    });
+
+    const { product_name, description, product_image, categories } = req.body;
+    const product = await Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        code: 404,
+        status: "fail",
+        message: "Product not found",
+        data: null
+      });
+    }
+    // Update the product and include the categories
+    await product.update({ product_name, description, product_image }).then(
+      async () => {
+        if (categories && categories.length > 0)
+          {
+            await product.setCategories(categories).then(
+              async () => {
+                await product.reload({
+                  include: [{
+                    model: Category,
+                    through: { attributes: [] }, // Exclude the join table attributes
+                  }],
+                });
+                  res.status(200).json({
+                      code: 200,
+                      status: "success",
+                      message: "Product updated successfully With Categories",
+                      data: product
+                    });
+              }
+            ); // Assuming categories is an array of category IDs
+          }
+          else
+          {
+            await product.reload({
+              include: [{
+                model: Category,
+                through: { attributes: [] }, // Exclude the join table attributes
+              }],
+            });
+            res.status(200).json({
+              code: 200,
+              status: "success",
+              message: "Product updated successfully",
+              data: product
+            });
+          }
+      }
+    )
+   
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
+
 
 
 
