@@ -26,6 +26,8 @@ module.exports = (sequelize, DataTypes) => {
           key: 'id'
         }
       },
+    }, {
+      paranoid: true // Enable soft delete
     });
   
     return Product;

@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ where: { email: req.body.email }, include: 'role' });
     if (!user)  return res.status(400).json({
-      code: 400, 
+      code: 401, 
       status: "fail",
       message: "Account not found. Please register first.",
       data: null
@@ -74,7 +74,7 @@ exports.login = async (req, res) => {
 
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword)  return res.status(400).json({
-      code: 400, 
+      code: 403, 
       status: "fail",
       message: "Invalid email or password. Please try again.",
       data: null
