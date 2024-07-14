@@ -22,7 +22,7 @@ exports.addProduct = async (req, res) => {
 
     const { product_name, description, product_image, categories } = req.body;
 
-    const product = await Product.create({ product_name, description, product_image, first_owner_id: 1, actual_owner_id: 1});
+    const product = await Product.create({ product_name, description, product_image, first_owner_id: req.user.id, actual_owner_id: req.user.id});
     await product.setCategories(categories).then(
         async () => {
           await product.reload({
