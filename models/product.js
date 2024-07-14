@@ -37,6 +37,22 @@ module.exports = (sequelize, DataTypes) => {
     }, {
       paranoid: true // Enable soft delete
     });
+
+    Product.associate = models => {
+      Product.belongsTo(models.User, {
+        foreignKey: 'first_owner_id',
+        as: 'first_owner'
+      });
+      Product.belongsTo(models.User, {
+        foreignKey: 'actual_owner_id',
+        as: 'actual_owner'
+      });
+      Product.belongsToMany(models.Category, {
+        through: 'ProductCategories',
+        foreignKey: 'product_id',
+        as: 'categories'
+      });
+    };
   
     return Product;
   };

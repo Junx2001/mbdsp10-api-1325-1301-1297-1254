@@ -29,6 +29,8 @@ exports.addProduct = async (req, res) => {
             include: [{
               model: Category,
               through: { attributes: [] }, // Exclude the join table attributes
+              attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+              include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
             }],
           });
             res.status(201).json({
@@ -58,7 +60,7 @@ exports.getExchangeableProducts = async (req, res) => {
      // Getting all products with their categories
       const products = await Product.findAll({
         where: { is_exchangeable: true },
-        include: [Category],
+        include: [Category, { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
       });
       res.status(200).json({
       code: 200,
@@ -79,12 +81,15 @@ exports.getExchangeableProducts = async (req, res) => {
 // Get a product
 exports.getProduct = async (req, res) => {
   try {
-    // Getting a product with its categories
-    const product = await Product.findByPk(req.params.id, {
+    // Getting a product with its categories and transform first_owner_id and actual_owner_id to user object
+    const product = await Product.findOne({
+      where: { id: req.params.id },
       include: [{
         model: Category,
         through: { attributes: [] }, // Exclude the join table attributes
       }],
+      attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+      include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
     });
     if (!product) {
       return res.status(404).json({
@@ -150,6 +155,8 @@ exports.updateProduct = async (req, res) => {
                   include: [{
                     model: Category,
                     through: { attributes: [] }, // Exclude the join table attributes
+                    attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+                    include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
                   }],
                 });
                   res.status(200).json({
@@ -167,6 +174,8 @@ exports.updateProduct = async (req, res) => {
               include: [{
                 model: Category,
                 through: { attributes: [] }, // Exclude the join table attributes
+                attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+                include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
               }],
             });
             res.status(200).json({
@@ -202,6 +211,14 @@ exports.setProductAsNonExchangeable = async (req, res) => {
       });
     }
     await product.update({ is_exchangeable: false });
+    await product.reload({
+      include: [{
+        model: Category,
+        through: { attributes: [] }, // Exclude the join table attributes
+        attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+        include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
+      }],
+    });
     res.status(200).json({
       code: 200,
       status: "success",
