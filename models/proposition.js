@@ -2,10 +2,6 @@ const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, DataTypes) => {
   const Proposition = sequelize.define('Proposition', {
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -21,7 +17,6 @@ module.exports = (sequelize, DataTypes) => {
     },
   });
 
- 
   Proposition.associate = models => {
     Proposition.belongsTo(models.User, {
       foreignKey: 'user_id',
