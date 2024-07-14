@@ -52,16 +52,14 @@ exports.addProduct = async (req, res) => {
 };
 
 
-// Get all products
-exports.getProducts = async (req, res) => {
+// Get all exchangeable products
+exports.getExchangeableProducts = async (req, res) => {
   try {
      // Getting all products with their categories
-     const products = await Product.findAll({
-      include: [{
-        model: Category,
-        through: { attributes: [] }, // Exclude the join table attributes
-      }],
-    });
+      const products = await Product.findAll({
+        where: { is_exchangeable: true },
+        include: [Category],
+      });
       res.status(200).json({
       code: 200,
       status: "success",

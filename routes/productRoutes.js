@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 /* GET products listing. */
 router.get('/:id', authMiddleware, productController.getProduct);
-router.get('/', authMiddleware, productController.getProducts);
+router.get('/', authMiddleware, productController.getExchangeableProducts);
 router.post('/', authMiddleware, productController.addProduct);
 router.put('/:id', authMiddleware, productController.updateProduct);
 router.patch('/:id', authMiddleware, productController.setProductAsNonExchangeable);
