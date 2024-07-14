@@ -194,7 +194,7 @@ exports.updateProduct = async (req, res) => {
 // Set a product as non exchangeable
 exports.setProductAsNonExchangeable = async (req, res) => {
   try {
-    const product = await Product.findByPk(req.params.id);
+    const product = await Product.findOne({ where: { id: req.params.id, actual_owner_id: req.user.id } });
     if (!product) {
       return res.status(404).json({
         code: 404,
