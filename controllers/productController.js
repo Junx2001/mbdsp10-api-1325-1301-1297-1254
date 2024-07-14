@@ -131,12 +131,13 @@ exports.updateProduct = async (req, res) => {
     });
 
     const { product_name, description, product_image, categories } = req.body;
-    const product = await Product.findByPk(req.params.id);
+    // Get the product by ID and by the actual owner
+    const product = await Product.findOne({ where: { id: req.params.id, actual_owner_id: req.user.id } });
     if (!product) {
       return res.status(404).json({
         code: 404,
         status: "fail",
-        message: "Product not found",
+        message: "Product not found Or You are not the owner of this product",
         data: null
       });
     }
