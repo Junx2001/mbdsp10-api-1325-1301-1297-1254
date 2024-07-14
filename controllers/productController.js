@@ -190,6 +190,36 @@ exports.updateProduct = async (req, res) => {
   }
 }
 
+// Set a product as non exchangeable
+exports.setProductAsNonExchangeable = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        code: 404,
+        status: "fail",
+        message: "Product not found",
+        data: null
+      });
+    }
+    await product.update({ is_exchangeable: false });
+    res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Product set as non exchangeable",
+      data: product
+    });
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+};
+
+
 //Soft delete a product
 exports.deleteProduct = async (req, res) => {
   try {
