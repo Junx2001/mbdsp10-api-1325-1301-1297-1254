@@ -57,9 +57,13 @@ exports.addProduct = async (req, res) => {
 // Get all exchangeable products
 exports.getExchangeableProducts = async (req, res) => {
   try {
-     // Getting all products with their categories
+    // Create where condition to get only exchangeable products
+    const where = { is_exchangeable: true };
+    if (req.query.userId) where.actual_owner_id = req.query.userId;
+    
+    // Getting all products with their categories and transform first_owner_id and actual_owner_id to user object
       const products = await Product.findAll({
-        where: { is_exchangeable: true },
+        where,
         include: [Category, { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
       });
       res.status(200).json({
