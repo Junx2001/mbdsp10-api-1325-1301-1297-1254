@@ -54,4 +54,46 @@ exports.createExchange = async (req, res) => {
   }
 };
 
+exports.acceptExchange = async (req, res) => {
+  try {
+    const exchange = await Exchange.findByPk(req.params.id);
+    if (!exchange) return res.status(404).json({
+      code: 404,
+      status: "fail",
+      message: "Exchange not found",
+      data: null
+    });
+
+    if (exchange.status == 'ACCEPTED') return res.status(400).json({
+      code: 400,
+      status: "fail",
+      message: "Exchange already accepted",
+      data: null
+    });
+
+    exchange.status = 'ACCEPTED';
+    await exchange.save();
+
+    // Deactivate all propositions where products involved in the exchange
+    await Proposition.update({ is_active: false }, {
+      where: { id: [exchange.owner_proposition_id, exchange.taker_proposition_id] }
+    }).then(() => {
+      res.status(200).json({
+        code: 200,
+        status: "success",
+        message: "Exchange accepted successfully",
+        data: exchange
+      });
+    });
+ 
+
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
 
