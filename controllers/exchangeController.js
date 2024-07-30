@@ -2,6 +2,7 @@ const Joi = require('joi');
 const db = require('../models');
 const Exchange = db.Exchange;
 const Proposition = db.Proposition;
+const Product = db.Product;
 
 
 exports.createExchange = async (req, res) => {
@@ -97,3 +98,40 @@ exports.acceptExchange = async (req, res) => {
   }
 }
 
+exports.getExchangeDetail = async (req, res) => {
+  try {
+    const exchange = await Exchange.findByPk(req.params.id, {
+      attributes: { exclude: ['owner_proposition_id', 'taker_proposition_id'] },
+      include: [
+        { model: Proposition, as: 'owner_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+        }] },
+        { model: Proposition, as: 'taker_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+        }]}
+      ]
+    });
+    if (!exchange) return res.status(404).json({
+      code: 404,
+      status: "fail",
+      message: "Exchange not found",
+      data: null
+    });
+
+    res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Exchange detail retrieved successfully",
+      data: exchange
+    });
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
