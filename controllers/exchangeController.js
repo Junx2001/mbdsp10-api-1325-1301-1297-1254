@@ -160,6 +160,13 @@ exports.receiveExchange = async (req, res) => {
       data: null
     });
 
+    if (exchange.status == 'RECEIVED' || exchange.status != 'ACCEPTED' || exchange.status == 'CANCELLED') return res.status(400).json({
+      code: 400,
+      status: "fail",
+      message: "Invalid Reception Request",
+      data: null
+    });
+
     if (req.body.accept == false) {
       exchange.status = 'CANCELLED';
       await exchange.save();
@@ -175,12 +182,7 @@ exports.receiveExchange = async (req, res) => {
         data: exchange
       });
     }
-    if (exchange.status == 'RECEIVED' || exchange.status != 'ACCEPTED') return res.status(400).json({
-      code: 400,
-      status: "fail",
-      message: "Invalid Reception Request",
-      data: null
-    });
+ 
 
     exchange.status = 'RECEIVED';
     await exchange.save();
