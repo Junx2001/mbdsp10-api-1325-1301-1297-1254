@@ -1,4 +1,4 @@
-const db = require('../models');
+const db = require('../models/pg_models');
 
 const roles = [
   { name: 'USER' },

@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const db = require('../models');
+const db = require('../models/pg_models');
 const Category = db.Category;
 
 

@@ -15,6 +15,7 @@ var authRoutes = require('./routes/authRoutes');
 var categoryRoutes = require('./routes/categoryRoutes');
 var productRoutes = require('./routes/productRoutes');
 var exchangeRoutes = require('./routes/exchangeRoutes');
+var userRoutes = require('./routes/userRoutes');
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/exchanges', exchangeRoutes);
+app.use('/api/users', userRoutes);
 
 
 module.exports = app;
