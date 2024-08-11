@@ -3,11 +3,11 @@
 ### Links to Code Repositories
 🌐 **Web Application (Grails and GSP)**: [Backoffice Troc Application](https://github.com/rotsyrotsy/mbdsp10-backoffice-1254-1297-1301-1325)
 
-🌐 **Web Application (JavaScript, Angular)**: 
+🌐 **Web Application (JavaScript, Angular)**: [Frontoffice Angular Troc Application](https://github.com/Princia08/mbdsp10-frontoffice-angular-1297-1254-1301-1325)
 
 📱 **Hybrid Mobile Application (Ionic, iOS)**: 
 
-🤖 **Native Android Application**: 
+🤖 **Native Android Application**:  [Frontoffice Android Troc Application](https://github.com/rotsyrotsy/mbdsp10-android-1254-1297-1301-1325)
 
 💻 **WinForms Application (C#)**: 
 
