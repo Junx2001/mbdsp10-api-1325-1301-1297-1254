@@ -9,11 +9,7 @@ module.exports = {
   dialect: process.env.DB_DIALECT,
   ssl_enable: process.env.DB_SSL_ENABLE,
   
-  mongo_db_host: process.env.MONGO_DB_HOST,
-  mongo_db_port: process.env.MONGO_DB_PORT,
-  mongo_db_name: process.env.MONGO_DB_NAME,
-  mongo_db_user: process.env.MONGO_DB_USER,
-  mongo_db_password: process.env.MONGO_DB_PASSWORD,
+  mongo_string_connection: process.env.MONGO_DB_URI,
 
   firebaseConfig: {
     apiKey: process.env.FIREBASE_API_KEY,
