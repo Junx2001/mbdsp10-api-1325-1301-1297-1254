@@ -4,6 +4,12 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
   host: dbConfig.host,
   dialect: dbConfig.dialect, 
   port: dbConfig.port,
+  dialectOptions: { // SSL configuration goes here
+    ssl: {
+      require: true, // Require SSL connection
+      rejectUnauthorized: false // Optional: control whether to reject unauthorized servers (default: true)
+    }
+  }
 });
 
 const db = {};
