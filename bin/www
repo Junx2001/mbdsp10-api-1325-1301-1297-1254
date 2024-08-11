@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('troc-tpt-mbds:server');
 var http = require('http');
-const db = require('../models');
+const db = require('../models/pg_models');
 
 /**
  * Get port from environment and store in Express.
