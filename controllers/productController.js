@@ -2,6 +2,7 @@ const Joi = require('joi');
 const db = require('../models/pg_models');
 const Product = db.Product;
 const Category = db.Category;
+const productsService = require('../services/product-service');
 
 // Add a product
 exports.addProduct = async (req, res) => {
@@ -268,6 +269,60 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
+
+
+exports.uploadProductImage = async (req, res) => {
+  try {
+    // Check if the product image is present in the request body 
+    if (!req.file) {
+      return res.status(400).json({
+        code: 400,
+        status: "fail",
+        message: "Product image is required",
+        data: null
+      });
+    }
+  
+    const product = await Product.findOne({ where: { id: req.params.id, actual_owner_id: req.user.id } });
+    if (!product) {
+      return res.status(404).json({
+        code: 404,
+        status: "fail",
+        message: "Product not found Or You are not the owner of this product",
+        data: null
+      });
+    }
+      // Update the product and include the categories
+      await productsService.uploadProductImage(req, res, product).then( async (updatedProducts) => {
+        const updatedProduct = await Product.findOne({
+          where: { id: req.params.id },
+          include: [{
+            model: Category,
+            through: { attributes: [] }, // Exclude the join table attributes
+          }],
+          attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
+          include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
+        });
+        
+        res.status(200).json({
+          code: 200,
+          status: "success",
+          message: "Product image uploaded successfully",
+          data: updatedProduct
+        });
+      }
+    );
+      
+   
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
 
 
 
