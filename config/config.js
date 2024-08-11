@@ -7,6 +7,7 @@ module.exports = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   dialect: process.env.DB_DIALECT,
+  ssl_enable: process.env.DB_SSL_ENABLE,
   
   mongo_db_host: process.env.MONGO_DB_HOST,
   mongo_db_port: process.env.MONGO_DB_PORT,
