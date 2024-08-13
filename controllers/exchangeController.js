@@ -214,11 +214,19 @@ exports.getExchangeDetail = async (req, res) => {
         { model: Proposition, as: 'owner_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }] },
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address'] }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }, ] },
         { model: Proposition, as: 'taker_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }]}
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address']  }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }]},
       ]
     });
     if (!exchange) return res.status(404).json({
