@@ -3,6 +3,7 @@ const db = require('../models/pg_models');
 const Exchange = db.Exchange;
 const Proposition = db.Proposition;
 const Product = db.Product;
+const User = db.User;
 const { Op } = require('sequelize');
 
 
@@ -251,18 +252,26 @@ exports.getAllMyExchanges = async (req, res) => {
         { model: Proposition, as: 'owner_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }] },
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address'] }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }, ] },
         { model: Proposition, as: 'taker_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }]}
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address']  }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }]},
       ]
     });
 
      // Iterate over results to add a custom field
      const enhancedExchanges = exchanges.map(result => ({
       ...result.toJSON(), // Convert Sequelize instance to plain object
-      matchType: result.owner_proposition_id === req.user.id ? 'owner' : 'taker'
+      matchType: result.owner_proposition_id === req.user.id ? 'OWNER' : 'TAKER'
     }));
 
     res.status(200).json({
