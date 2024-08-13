@@ -3,6 +3,7 @@ const db = require('../models/pg_models');
 const Exchange = db.Exchange;
 const Proposition = db.Proposition;
 const Product = db.Product;
+const { Op } = require('sequelize');
 
 
 exports.createExchange = async (req, res) => {
@@ -231,6 +232,44 @@ exports.getExchangeDetail = async (req, res) => {
       status: "success",
       message: "Exchange detail retrieved successfully",
       data: exchange
+    });
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
+
+exports.getAllMyExchanges = async (req, res) => {
+  try {
+    const exchanges = await Exchange.findAll({
+      where: { [Op.or]: [{ owner_proposition_id: req.user.id }, { taker_proposition_id: req.user.id }] },
+      include: [
+        { model: Proposition, as: 'owner_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+        }] },
+        { model: Proposition, as: 'taker_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+        }]}
+      ]
+    });
+
+     // Iterate over results to add a custom field
+     const enhancedExchanges = exchanges.map(result => ({
+      ...result.toJSON(), // Convert Sequelize instance to plain object
+      matchType: result.owner_proposition_id === req.user.id ? 'owner' : 'taker'
+    }));
+
+    res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Exchanges retrieved successfully",
+      data: enhancedExchanges
     });
   } catch (err) {
     res.status(500).json({
