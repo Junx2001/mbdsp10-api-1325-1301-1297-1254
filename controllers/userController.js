@@ -18,6 +18,17 @@ exports.rateUser = async (req, res) => {
         message: error.details[0].message,
         data: null
         });
+
+        // Verify if the concerned user exists
+        const user = await db.User.findByPk(req.body.concerned_user_id);
+        if (!user) {
+            return res.status(404).json({
+            code: 404,
+            status: "fail",
+            message: "User To Rate does not exist",
+            data: null
+            });
+        }
     
         const rating = await Rating.create({
             userId: req.user.id,

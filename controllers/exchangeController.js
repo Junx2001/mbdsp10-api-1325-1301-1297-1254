@@ -3,6 +3,9 @@ const db = require('../models/pg_models');
 const Exchange = db.Exchange;
 const Proposition = db.Proposition;
 const Product = db.Product;
+const User = db.User;
+const { Op } = require('sequelize');
+const Transaction = require('../models/mongo_models/transaction');
 
 
 exports.createExchange = async (req, res) => {
@@ -141,7 +144,9 @@ exports.cancelExchange = async (req, res) => {
 
 exports.receiveExchange = async (req, res) => {
   const schema = Joi.object({
-    accept: Joi.boolean().required()
+    accept: Joi.boolean().required(),
+    longitude: Joi.number().required(),
+    latitude: Joi.number().required(),
   });
   try {
     const { error } = schema.validate(req.body);
@@ -181,12 +186,25 @@ exports.receiveExchange = async (req, res) => {
         message: "Exchange Cancelled successfully",
         data: exchange
       });
+
     }
- 
+
 
     exchange.status = 'RECEIVED';
     await exchange.save();
     // TODO : Update the transaction status to RECEIVED
+
+    // Temporary : create the transaction in Mongo DB with the status RECEIVED 
+    const transaction = new Transaction({
+      exchange_id: exchange.id,
+      owner_id: exchange.owner_proposition_id,
+      taker_id: exchange.taker_proposition_id,
+      longitude: req.body.longitude,
+      latitude: req.body.latitude,
+      status: 'RECEIVED'
+    });
+    await transaction.save();
+      
     res.status(200).json({
       code: 200,
       status: "success",
@@ -212,11 +230,19 @@ exports.getExchangeDetail = async (req, res) => {
         { model: Proposition, as: 'owner_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }] },
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address'] }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }, ] },
         { model: Proposition, as: 'taker_proposition', include: [{
           model: Product,
           through: { attributes: [] }, // Exclude the join table attributes
-        }]}
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address']  }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }]},
       ]
     });
     if (!exchange) return res.status(404).json({
@@ -231,6 +257,68 @@ exports.getExchangeDetail = async (req, res) => {
       status: "success",
       message: "Exchange detail retrieved successfully",
       data: exchange
+    });
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      status: "fail",
+      message: err.message,
+      data: null
+    });
+  }
+}
+
+exports.getAllMyExchanges = async (req, res) => {
+  try {
+    const exchanges = await Exchange.findAll({
+      //where: { [Op.or]: [{ owner_proposition_id: req.user.id }, { taker_proposition_id: req.user.id }] },
+      include: [
+        { model: Proposition, as: 'owner_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address'] }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }, ] },
+        { model: Proposition, as: 'taker_proposition', include: [{
+          model: Product,
+          through: { attributes: [] }, // Exclude the join table attributes
+          include: [
+            { model: User, as: 'actual_owner', attributes: ['username', 'email', 'address']  }, // Assuming 'actual_owner' is the association name
+            { model: User, as: 'first_owner', attributes: ['username', 'email', 'address']  }  // Assuming 'first_owner' is the association name
+          ]
+        }, { model: User, as: 'user', attributes: ['username', 'email'] }]},
+      ]
+    });
+
+    // Filter exchanges based on user involvement
+    // Assuming `exchanges` is an array of Sequelize instances returned from a query
+      const filteredExchanges = exchanges.map(exchange => {
+        // Convert Sequelize instance to plain object
+        const exchangeObj = exchange.get({ plain: true });
+        let userExchangeRole = '';
+        if (exchange.owner_proposition.user_id === req.user.id) {
+          userExchangeRole = 'OWNER';
+        } else if (exchange.taker_proposition.user_id === req.user.id) {
+          userExchangeRole = 'TAKER';
+        }
+        // Only include exchanges where the user is involved
+        if (userExchangeRole !== '') {
+          return {
+            ...exchangeObj,
+            matchType: userExchangeRole
+          };
+        } else {
+          return null;
+        }
+      }).filter(exchange => exchange !== null);
+
+    res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Exchanges retrieved successfully",
+      data: filteredExchanges
     });
   } catch (err) {
     res.status(500).json({
