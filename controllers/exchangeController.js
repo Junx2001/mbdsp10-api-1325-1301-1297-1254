@@ -292,31 +292,33 @@ exports.getAllMyExchanges = async (req, res) => {
       ]
     });
 
-    let userExchangeRole = '';
     // Filter exchanges based on user involvement
-    const filteredExchanges = exchanges.filter(exchange => {
-      if (exchange.owner_proposition.user_id === req.user.id) {
-        userExchangeRole = 'OWNER';
-        return true;
-      }
-      if (exchange.taker_proposition.user_id === req.user.id) {
-        userExchangeRole = 'TAKER';
-        return true;
-      }
-      return false;
-    });
-
-    //  Iterate over results to add a custom field
-    const enhancedExchanges = filteredExchanges.map(result => ({
-      ...result.toJSON(), // Convert Sequelize instance to plain object
-      matchType: userExchangeRole
-    }));
+    // Assuming `exchanges` is an array of Sequelize instances returned from a query
+      const filteredExchanges = exchanges.map(exchange => {
+        // Convert Sequelize instance to plain object
+        const exchangeObj = exchange.get({ plain: true });
+        let userExchangeRole = '';
+        if (exchange.owner_proposition.user_id === req.user.id) {
+          userExchangeRole = 'OWNER';
+        } else if (exchange.taker_proposition.user_id === req.user.id) {
+          userExchangeRole = 'TAKER';
+        }
+        // Only include exchanges where the user is involved
+        if (userExchangeRole !== '') {
+          return {
+            ...exchangeObj,
+            matchType: userExchangeRole
+          };
+        } else {
+          return null;
+        }
+      }).filter(exchange => exchange !== null);
 
     res.status(200).json({
       code: 200,
       status: "success",
       message: "Exchanges retrieved successfully",
-      data: enhancedExchanges
+      data: filteredExchanges
     });
   } catch (err) {
     res.status(500).json({
