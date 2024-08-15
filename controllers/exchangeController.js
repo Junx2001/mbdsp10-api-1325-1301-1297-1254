@@ -5,6 +5,7 @@ const Proposition = db.Proposition;
 const Product = db.Product;
 const User = db.User;
 const { Op } = require('sequelize');
+const Transaction = require('../models/mongo_models/transaction');
 
 
 exports.createExchange = async (req, res) => {
@@ -143,7 +144,9 @@ exports.cancelExchange = async (req, res) => {
 
 exports.receiveExchange = async (req, res) => {
   const schema = Joi.object({
-    accept: Joi.boolean().required()
+    accept: Joi.boolean().required(),
+    longitude: Joi.number().required(),
+    latitude: Joi.number().required(),
   });
   try {
     const { error } = schema.validate(req.body);
@@ -183,12 +186,25 @@ exports.receiveExchange = async (req, res) => {
         message: "Exchange Cancelled successfully",
         data: exchange
       });
+
     }
- 
+
 
     exchange.status = 'RECEIVED';
     await exchange.save();
     // TODO : Update the transaction status to RECEIVED
+
+    // Temporary : create the transaction in Mongo DB with the status RECEIVED 
+    const transaction = new Transaction({
+      exchange_id: exchange.id,
+      owner_id: exchange.owner_proposition_id,
+      taker_id: exchange.taker_proposition_id,
+      longitude: req.body.longitude,
+      latitude: req.body.latitude,
+      status: 'RECEIVED'
+    });
+    await transaction.save();
+      
     res.status(200).json({
       code: 200,
       status: "success",
