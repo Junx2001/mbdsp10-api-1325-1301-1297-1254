@@ -271,7 +271,7 @@ exports.getExchangeDetail = async (req, res) => {
 exports.getAllMyExchanges = async (req, res) => {
   try {
     const exchanges = await Exchange.findAll({
-      where: { [Op.or]: [{ owner_proposition_id: req.user.id }, { taker_proposition_id: req.user.id }] },
+      //where: { [Op.or]: [{ owner_proposition_id: req.user.id }, { taker_proposition_id: req.user.id }] },
       include: [
         { model: Proposition, as: 'owner_proposition', include: [{
           model: Product,
@@ -292,10 +292,24 @@ exports.getAllMyExchanges = async (req, res) => {
       ]
     });
 
-     // Iterate over results to add a custom field
-     const enhancedExchanges = exchanges.map(result => ({
+    let userExchangeRole = '';
+    // Filter exchanges based on user involvement
+    const filteredExchanges = exchanges.filter(exchange => {
+      if (exchange.owner_proposition.user_id === req.user.id) {
+        userExchangeRole = 'OWNER';
+        return true;
+      }
+      if (exchange.taker_proposition.user_id === req.user.id) {
+        userExchangeRole = 'TAKER';
+        return true;
+      }
+      return false;
+    });
+
+    //  Iterate over results to add a custom field
+    const enhancedExchanges = filteredExchanges.map(result => ({
       ...result.toJSON(), // Convert Sequelize instance to plain object
-      matchType: result.owner_proposition_id === req.user.id ? 'OWNER' : 'TAKER'
+      matchType: userExchangeRole
     }));
 
     res.status(200).json({
