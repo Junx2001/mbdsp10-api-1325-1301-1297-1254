@@ -31,6 +31,15 @@ exports.register = async (req, res) => {
       data: null
     });
 
+    // Verify if user already exists by email
+    const userExist = await User.findOne({ where: { email: req.body.email } });
+    if (userExist)  return res.status(400).json({
+      code: 400, 
+      status: "fail",
+      message: "User already exists. Please login.",
+      data: null
+    });
+
     const user = await User.create({ ...req.body, role_id: role.id });
     const new_user = { id: user.id, username: user.username, email: user.email, role: role.name }
     res.status(201).json({
