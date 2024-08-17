@@ -3,9 +3,22 @@ const db = require('../models/pg_models');
 const Product = db.Product;
 const Category = db.Category;
 const productsService = require('../services/product-service');
+const categoryService = require('../services/category-service');
 
 // Add a product
 exports.addProduct = async (req, res) => {
+  // Check if the categories exist or categories is not present in the request body
+  const categoriesExist = await categoryService.checkCategoriesExists(req.body.categories);
+  if (!categoriesExist) {
+    return res.status(400).json({
+      code: 400,
+      status: "fail",
+      message: "One or more categories do not exist, Please check the categories",
+      data: null
+    });
+  }
+
+  // Validate the request body
     const schema = Joi.object({
         product_name: Joi.string().required(),
         description: Joi.string().allow(null, ''),
@@ -31,8 +44,9 @@ exports.addProduct = async (req, res) => {
               model: Category,
               through: { attributes: [] }, // Exclude the join table attributes
               attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-              include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
-            }],
+              //include: [],
+            }, { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']} 
+          ],
           });
             res.status(201).json({
                 code: 201,
