@@ -31,8 +31,9 @@ exports.addProduct = async (req, res) => {
               model: Category,
               through: { attributes: [] }, // Exclude the join table attributes
               attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-              include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
-            }],
+              //include: [],
+            }, { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']} 
+          ],
           });
             res.status(201).json({
                 code: 201,
