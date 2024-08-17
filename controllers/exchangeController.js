@@ -8,6 +8,8 @@ const { Op } = require('sequelize');
 const Transaction = require('../models/mongo_models/transaction');
 
 
+const exchangeService = require('../services/exchange-service');
+
 exports.createExchange = async (req, res) => {
   const schema = Joi.object({
     owner_products: Joi.array().items(Joi.number()).required(), // Assuming product IDs of owner proposition
@@ -24,6 +26,68 @@ exports.createExchange = async (req, res) => {
       message: error.details[0].message,
       data: null
     });
+
+    // TO DO : Validate if the products in owner_products are really owned by the owner_id
+    // Validate if the products in owner_products are really owned by the owner_id
+    const ownerProducts = await Product.findAll({
+      where: {
+        id: { [Op.in]: req.body.owner_products },
+        user_id: req.body.owner_id
+      }
+    });
+    if (ownerProducts.length !== req.body.owner_products.length) {
+      return res.status(400).json({
+        code: 400,
+        status: "fail",
+        message: "Invalid owner products",
+        data: null
+      });
+    }
+
+    // Validate if the products in taker_products are really owned by the taker_id
+    const takerProducts = await Product.findAll({
+      where: {
+        id: { [Op.in]: req.body.taker_products },
+        user_id: req.body.taker_id
+      }
+    });
+    if (takerProducts.length !== req.body.taker_products.length) {
+      return res.status(400).json({
+        code: 400,
+        status: "fail",
+        message: "Invalid taker products",
+        data: null
+      });
+    }
+
+    // Validate if the products are available for exchange
+    const unavailableProducts = await Product.findAll({
+      where: {
+        id: {
+          [Op.in]: [...req.body.owner_products, ...req.body.taker_products]
+        },
+        is_exchangeable: false
+      }
+    });
+    if (unavailableProducts.length > 0) {
+      return res.status(400).json({
+        code: 400,
+        status: "fail",
+        message: "Some products are not available for exchange",
+        data: null
+      });
+    }
+
+    // Validate if the owner and taker are different users
+    if (req.body.owner_id === req.body.taker_id) {
+      return res.status(400).json({
+        code: 400,
+        status: "fail",
+        message: "Owner and taker cannot be the same user",
+        data: null
+      });
+    }
+
 
     // Create owner proposition
     const ownerProposition = await Proposition.create({ user_id: req.body.owner_id, is_active: true });
@@ -68,31 +132,26 @@ exports.acceptExchange = async (req, res) => {
       data: null
     });
 
-    if (exchange.status !='CREATED' || exchange.status == 'ACCEPTED') return res.status(400).json({
+    if (exchange.status !='CREATED') return res.status(400).json({
       code: 400,
       status: "fail",
       message: "Invalid Exchange Accept Request",
       data: null
     });
 
-    exchange.status = 'ACCEPTED';
-    await exchange.save();
-    // TO DO : Creating a new Transation for the exchange (Mongo DB)
 
     // TO DO : Generate a QR code for the process of reception of exchange
 
-    // Deactivate all propositions where products involved in the exchange (Need improvements)
-    await Proposition.update({ is_active: false }, {
-      where: { id: [exchange.owner_proposition_id, exchange.taker_proposition_id] }
-    }).then(() => {
-      res.status(200).json({
-        code: 200,
-        status: "success",
-        message: "Exchange accepted successfully",
-        data: exchange
-      });
+    await exchangeService.acceptExchangeUpdates(exchange);
+
+    res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Exchange accepted successfully",
+      data: exchange
+
     });
- 
+
 
   } catch (err) {
     res.status(500).json({
@@ -122,7 +181,7 @@ exports.cancelExchange = async (req, res) => {
     });
 
     exchange.status = 'CANCELLED';
-       // TO DO : Update the transaction status to CANCELLED
+     
     await exchange.save().then(() => {
       res.status(200).json({
         code: 200,
@@ -165,7 +224,7 @@ exports.receiveExchange = async (req, res) => {
       data: null
     });
 
-    if (exchange.status == 'RECEIVED' || exchange.status != 'ACCEPTED' || exchange.status == 'CANCELLED') return res.status(400).json({
+    if (exchange.status != 'ACCEPTED') return res.status(400).json({
       code: 400,
       status: "fail",
       message: "Invalid Reception Request",
@@ -173,26 +232,17 @@ exports.receiveExchange = async (req, res) => {
     });
 
     if (req.body.accept == false) {
-      exchange.status = 'CANCELLED';
-      await exchange.save();
-
-      // TO DO : Update the transaction status to CANCELLED
-
-      // TO DO : Update all propositions where products involved in the exchange to Active
-
-      return res.status(200).json({
-        code: 200,
+      return res.status(400).json({
+        code: 400,
         status: "success",
-        message: "Exchange Cancelled successfully",
+        message: "You have refused the exchange reception, but in real life, you should have accepted it 🥲",
         data: exchange
       });
 
     }
 
-
     exchange.status = 'RECEIVED';
     await exchange.save();
-    // TODO : Update the transaction status to RECEIVED
 
     // Temporary : create the transaction in Mongo DB with the status RECEIVED 
     const transaction = new Transaction({
