@@ -108,7 +108,7 @@ exports.getProduct = async (req, res) => {
         through: { attributes: [] }, // Exclude the join table attributes
       }],
       attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-      include: [Category, { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
+      include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
     });
     if (!product) {
       return res.status(404).json({
@@ -175,8 +175,8 @@ exports.updateProduct = async (req, res) => {
                     model: Category,
                     through: { attributes: [] }, // Exclude the join table attributes
                     attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-                    include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
-                  }],
+                  },
+                  { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
                 });
                   res.status(200).json({
                       code: 200,
@@ -194,8 +194,8 @@ exports.updateProduct = async (req, res) => {
                 model: Category,
                 through: { attributes: [] }, // Exclude the join table attributes
                 attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-                include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
-              }],
+              },
+              { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
             });
             res.status(200).json({
               code: 200,
@@ -235,8 +235,8 @@ exports.setProductAsNonExchangeable = async (req, res) => {
         model: Category,
         through: { attributes: [] }, // Exclude the join table attributes
         attributes: { exclude: ['first_owner_id', 'actual_owner_id'] },
-        include: [{ model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
-      }],
+      }, 
+    { model: db.User  , as: 'actual_owner', attributes: ['id', 'username', 'email','address', 'user_image']}, { model: db.User  , as: 'first_owner', attributes: ['id', 'username', 'email','address', 'user_image']}],
     });
     res.status(200).json({
       code: 200,
