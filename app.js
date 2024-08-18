@@ -5,6 +5,7 @@ require('dotenv').config({
 
 
 var express = require('express');
+var cors = require('cors');  // Import CORS middleware
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -18,6 +19,8 @@ var exchangeRoutes = require('./routes/exchangeRoutes');
 var userRoutes = require('./routes/userRoutes');
 
 var app = express();
+// Enable CORS for all origins
+app.use(cors());
 
 
 app.use(logger('dev'));
