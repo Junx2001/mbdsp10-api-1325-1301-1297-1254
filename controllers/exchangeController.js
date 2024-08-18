@@ -32,7 +32,7 @@ exports.createExchange = async (req, res) => {
     const ownerProducts = await Product.findAll({
       where: {
         id: { [Op.in]: req.body.owner_products },
-        user_id: req.body.owner_id
+        actual_owner_id: req.body.owner_id
       }
     });
     if (ownerProducts.length !== req.body.owner_products.length) {
@@ -48,7 +48,7 @@ exports.createExchange = async (req, res) => {
     const takerProducts = await Product.findAll({
       where: {
         id: { [Op.in]: req.body.taker_products },
-        user_id: req.body.taker_id
+        actual_owner_id: req.body.taker_id
       }
     });
     if (takerProducts.length !== req.body.taker_products.length) {
