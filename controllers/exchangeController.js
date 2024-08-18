@@ -142,7 +142,7 @@ exports.acceptExchange = async (req, res) => {
 
     // TO DO : Generate a QR code for the process of reception of exchange
 
-    await exchangeService.acceptExchangeUpdates(exchange);
+    //await exchangeService.acceptExchangeUpdates(exchange);
 
     res.status(200).json({
       code: 200,
@@ -243,6 +243,8 @@ exports.receiveExchange = async (req, res) => {
 
     exchange.status = 'RECEIVED';
     await exchange.save();
+
+    await exchangeService.acceptExchangeUpdates(exchange);
 
     // Temporary : create the transaction in Mongo DB with the status RECEIVED 
     const transaction = new Transaction({
