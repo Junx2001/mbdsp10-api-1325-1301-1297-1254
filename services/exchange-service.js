@@ -47,7 +47,7 @@ const acceptExchangeUpdates = async (exchange) => {
         await Exchange.update({ status: 'BLOCKED' }, {
           where: {
             id: { [Op.ne]: exchange.id },
-            status: 'PENDING',
+            //status: 'PENDING',
             [Op.or]: [
               { owner_proposition_id: { [Op.in]: updatedPropositions.map(proposition => proposition.id) } },
               { taker_proposition_id: { [Op.in]: updatedPropositions.map(proposition => proposition.id) } }
