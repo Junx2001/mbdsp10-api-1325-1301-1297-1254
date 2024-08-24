@@ -74,7 +74,7 @@ exports.getExchangeableProducts = async (req, res) => {
   try {
     // Create where condition to get only exchangeable products
     const where = { is_exchangeable: true };
-    if (req.user.id) where.actual_owner_id = req.user.id;
+    if (req.query.userId) where.actual_owner_id = req.query.userId;
     
     // Getting all products with their categories and transform first_owner_id and actual_owner_id to user object
       const products = await Product.findAll({
