@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       PropositionProduct.belongsTo(models.Proposition, {
         foreignKey: 'proposition_id',
-        as: 'proposition'
+        //as: 'proposition'
       });
     };
     return PropositionProduct;

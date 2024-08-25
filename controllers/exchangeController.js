@@ -244,13 +244,15 @@ exports.receiveExchange = async (req, res) => {
     exchange.status = 'RECEIVED';
     await exchange.save();
 
-    await exchangeService.acceptExchangeUpdates(exchange);
+    // Get the owner_id and taker_id from the exchange
+    const owner_id = await Proposition.findByPk(exchange.owner_proposition_id).then(prop => prop.user_id);
+    const taker_id = await Proposition.findByPk(exchange.taker_proposition_id).then(prop => prop.user_id);
 
     // Temporary : create the transaction in Mongo DB with the status RECEIVED 
     const transaction = new Transaction({
       exchange_id: exchange.id,
-      owner_id: exchange.owner_proposition_id,
-      taker_id: exchange.taker_proposition_id,
+      owner_id: owner_id,
+      taker_id: taker_id,
       longitude: req.body.longitude,
       latitude: req.body.latitude,
       status: 'RECEIVED'
