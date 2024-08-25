@@ -53,5 +53,37 @@ exports.rateUser = async (req, res) => {
     }
 };
 
+exports.getProfileRatings = async (req, res) => {
+    try {
+        const user = await db.User.findByPk(req.params.id);
+        if (!user || user.is_active === false) {
+            return res.status(404).json({
+            code: 404,
+            status: "fail",
+            message: "User not found",
+            data: null
+            });
+        }
+        // Fetch all ratings for the user
+        const ratings = await Rating.find({ concerned_user_id: user.id });
+        // Attach ratings to the user object
+        const userWithRatings = user.toJSON(); // Convert the user instance to a plain object
+        userWithRatings.ratings = ratings;
 
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "User with its Details fetched successfully",
+            data: userWithRatings
+        });
+
+    } catch (err) {
+        res.status(500).json({
+        code: 500,
+        status: "fail",
+        message: err.message,
+        data: null
+        });
+    }
+}
 
