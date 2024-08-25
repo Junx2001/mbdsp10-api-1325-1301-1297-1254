@@ -2,6 +2,7 @@
 const db = require('../models/pg_models');
 const { Exchange, Proposition, Product, PropositionProduct } = db;
 const { Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 
 
@@ -35,9 +36,9 @@ const acceptExchangeUpdates = async (exchange) => {
           where: {
             id: {
               [Op.in]: Sequelize.literal(`(
-                SELECT DISTINCT "idProposition"
+                SELECT DISTINCT "proposition_id"
                 FROM "PropositionProducts"
-                WHERE "idProduct" IN (${ownerProducts.map(product => product.id).join(', ')})
+                WHERE "product_id" IN (${ownerProducts.map(product => product.id).join(', ')})
               )`),
             },
             id: {
@@ -54,9 +55,9 @@ const acceptExchangeUpdates = async (exchange) => {
           where: {
             id: {
               [Op.in]: Sequelize.literal(`(
-                SELECT DISTINCT "idProposition"
+                SELECT DISTINCT "proposition_id"
                 FROM "PropositionProducts"
-                WHERE "idProduct" IN (${takerProducts.map(product => product.id).join(', ')})
+                WHERE "product_id" IN (${takerProducts.map(product => product.id).join(', ')})
               )`),
             },
             id: {
@@ -71,11 +72,10 @@ const acceptExchangeUpdates = async (exchange) => {
         include: [{
           model: PropositionProduct,
           where: {
-            idProduct: {
+            product_id: {
               [Op.in]: [...ownerProducts.map(product => product.id), ...takerProducts.map(product => product.id)]
             }
           },
-          include: [Product]
         }]
       });
   
