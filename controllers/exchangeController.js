@@ -142,7 +142,7 @@ exports.acceptExchange = async (req, res) => {
 
     // TO DO : Generate a QR code for the process of reception of exchange
 
-    await exchangeService.acceptExchangeUpdates(exchange);
+    //await exchangeService.acceptExchangeUpdates(exchange);
 
     res.status(200).json({
       code: 200,
