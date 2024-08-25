@@ -22,7 +22,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'user_id',
       as: 'user'
     });
+
+    Proposition.hasMany(models.PropositionProduct, { foreignKey: 'proposition_id'});
   };
+
+  
 
   return Proposition;
 };

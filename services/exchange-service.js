@@ -1,7 +1,8 @@
 
 const db = require('../models/pg_models');
-const { Exchange, Proposition, Product } = db;
+const { Exchange, Proposition, Product, PropositionProduct } = db;
 const { Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 
 
@@ -27,27 +28,62 @@ const acceptExchangeUpdates = async (exchange) => {
         await Product.update({ actual_owner_id: exchange.owner_proposition.user_id }, {
             where: { id: { [Op.in]: takerProducts.map(product => product.id) } }
         });
-        
-        // Deactivate all propositions where products involved in the exchange
-        await Proposition.update({ is_active: false }, {
-          where: { id: { [Op.in]: ownerProducts.map(product => product.id) },
-                    id : { [Op.ne]: exchange.owner_proposition.id} }
-        });
-        await Proposition.update({ is_active: false }, {
-          where: { id: { [Op.in]: takerProducts.map(product => product.id) },
-                    id : { [Op.ne]: exchange.taker_proposition.id} }    
-        });
+
+      // Deactivate all propositions where products involved in the exchange
+      await Proposition.update(
+        { is_active: false },
+        {
+          where: {
+            id: {
+              [Op.in]: Sequelize.literal(`(
+                SELECT DISTINCT "proposition_id"
+                FROM "PropositionProducts"
+                WHERE "product_id" IN (${ownerProducts.map(product => product.id).join(', ')})
+              )`),
+            },
+            id: {
+              [Op.ne]: exchange.owner_proposition.id,
+            },
+          },
+        }
+      );
+
+       // Deactivate all propositions where products involved in the exchange
+       await Proposition.update(
+        { is_active: false },
+        {
+          where: {
+            id: {
+              [Op.in]: Sequelize.literal(`(
+                SELECT DISTINCT "proposition_id"
+                FROM "PropositionProducts"
+                WHERE "product_id" IN (${takerProducts.map(product => product.id).join(', ')})
+              )`),
+            },
+            id: {
+              [Op.ne]: exchange.taker_proposition_id.id,
+            },
+          },
+        }
+      );
   
-        const updatedPropositions = await Proposition.findAll({
-          where: { id: { [Op.in]: [...ownerProducts.map(product => product.id), ...takerProducts.map(product => product.id)] } },
-          include: [Product]
-        });
+
+      const updatedPropositions = await Proposition.findAll({
+        include: [{
+          model: PropositionProduct,
+          where: {
+            product_id: {
+              [Op.in]: [...ownerProducts.map(product => product.id), ...takerProducts.map(product => product.id)]
+            }
+          },
+        }]
+      });
   
         // Block all exchanges involving propositions with the products involved in the exchange
         await Exchange.update({ status: 'BLOCKED' }, {
           where: {
             id: { [Op.ne]: exchange.id },
-            status: 'PENDING',
+            status: 'CREATED',
             [Op.or]: [
               { owner_proposition_id: { [Op.in]: updatedPropositions.map(proposition => proposition.id) } },
               { taker_proposition_id: { [Op.in]: updatedPropositions.map(proposition => proposition.id) } }
@@ -55,8 +91,6 @@ const acceptExchangeUpdates = async (exchange) => {
           }
         });
       });
-
-      
 
 }
 
