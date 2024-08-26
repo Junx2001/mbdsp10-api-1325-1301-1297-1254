@@ -1,5 +1,11 @@
 ## Links
 
+### Documentations Postman Collection for API REST : 
+**Collection User**: [Users POSTMAN ](https://documenter.getpostman.com/view/14904994/2sAXjGcDuR)
+**Collection Exchange - Propositions**: [Exchanges POSTMAN ](https://documenter.getpostman.com/view/14904994/2sAXjGcDuQ)
+**Collection Products**: [Products POSTMAN ](https://documenter.getpostman.com/view/14904994/2sAXjGcDuN)
+
+
 ### Links to Code Repositories
 🌐 **Web Application (Grails and GSP)**: [Backoffice Troc Application](https://github.com/rotsyrotsy/mbdsp10-backoffice-1254-1297-1301-1325)
 
